@@ -1,0 +1,28 @@
+# Dependencies (Crucial - never commit these)
+node_modules/
+.pnp
+.pnp.js
+
+# Backend compiled code
+dist/
+build/
+
+# Frontend Next.js build output
+.next/
+out/
+
+# Environment Variables (Security - never commit your secrets)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Hardhat / Smart Contracts
+cache/
+artifacts/
+
+# OS and Editor files
+.DS_Store
+.vscode/
+.idea/
