@@ -13,6 +13,10 @@ connectDB();
 const PORT = process.env.PORT || 5000;
 
 import authRoutes from './routes/auth.routes.js';
+import documentRoutes from './routes/document.routes.js';
+import batchRoutes from './routes/batch.routes.js';
+import anchorRoutes from './routes/anchor.routes.js';
+import verifyRoutes from './routes/verify.routes.js';
 
 app.use(cors({
     origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
@@ -22,6 +26,10 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/documents', documentRoutes);
+app.use('/api/batch', batchRoutes);
+app.use('/api/anchor', anchorRoutes);
+app.use('/api/verify', verifyRoutes);
 
 //health check
 app.get('/', (req: Request, res: Response) => {
