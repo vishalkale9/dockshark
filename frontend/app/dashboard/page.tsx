@@ -3,6 +3,9 @@
 import React from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import FileUploader from '@/components/dashboard/FileUploader';
+import DocumentLedger from '@/components/dashboard/DocumentLedger';
+import BatchProcessor from '@/components/dashboard/BatchProcessor';
+import AnchorProcessor from '@/components/dashboard/AnchorProcessor';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function DashboardPage() {
@@ -25,6 +28,15 @@ export default function DashboardPage() {
           {/* Uploader Section */}
           <FileUploader />
 
+          {/* Admin Batch Processor */}
+          <BatchProcessor />
+
+          {/* Admin Anchor Processor */}
+          <AnchorProcessor />
+
+          {/* Document History Ledger */}
+          <DocumentLedger />
+
           {/* Info Section */}
           <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -36,7 +48,7 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold text-[#141B34] mb-2">Step 1: Zero-Knowledge</h3>
               <p className="text-gray-500 text-sm leading-relaxed">Your files are hashed locally in your browser using Keccak-256. We never see, store, or transmit your actual document data.</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center mb-4 text-[#E57A3C]">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -46,7 +58,7 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold text-[#141B34] mb-2">Step 2: Merkle Batching</h3>
               <p className="text-gray-500 text-sm leading-relaxed">Multiple document hashes are cryptographically combined into a single, highly efficient Merkle Root structure.</p>
             </div>
-            
+
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
               <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center mb-4 text-purple-600">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
