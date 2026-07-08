@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 import Navbar from "@/components/layout/Navbar";
 import { AuthProvider } from "@/context/AuthContext";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export default function RootLayout({
   children,
@@ -30,16 +31,19 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-gray-50 dark:bg-gray-900">
-        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
-          <AuthProvider>
-            <Navbar />
-            <main className="flex-grow pt-[116px]">
-              {children}
-            </main>
-          </AuthProvider>
-        </GoogleOAuthProvider>
+      <body className="min-h-full flex flex-col bg-white dark:bg-gray-900 transition-colors">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
+            <AuthProvider>
+              <Navbar />
+              <main className="flex-grow pt-[116px]">
+                {children}
+              </main>
+            </AuthProvider>
+          </GoogleOAuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

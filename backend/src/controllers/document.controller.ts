@@ -56,9 +56,41 @@ export const getUserDocuments = async (req: AuthRequest, res: Response): Promise
             return;
         }
 
-        const documents = await DocumentModel.find({ ownerId }).sort({ createdAt: -1 });
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 5;
+        const skip = (page - 1) * limit;
 
-        res.json({ documents });
+        // Fetch paginated documents, total count, and aggregated stats simultaneously
+        const [documents, totalCount, statsData] = await Promise.all([
+            DocumentModel.find({ ownerId }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+            DocumentModel.countDocuments({ ownerId }),
+            DocumentModel.aggregate([
+                { $match: { ownerId } },
+                { $group: { _id: '$status', count: { $sum: 1 } } }
+            ])
+        ]);
+
+        let anchored = 0, pending = 0, batched = 0;
+        statsData.forEach(s => {
+            if (s._id === 'ANCHORED') anchored = s.count;
+            if (s._id === 'PENDING_BATCH') pending = s.count;
+            if (s._id === 'BATCHED') batched = s.count;
+        });
+
+        res.json({ 
+            documents,
+            pagination: {
+                totalCount,
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit)
+            },
+            stats: {
+                total: totalCount,
+                anchored,
+                pending,
+                batched
+            }
+        });
     } catch (error: any) {
         console.error("Error fetching documents:", error);
         res.status(500).json({ message: 'Server error while fetching documents' });
