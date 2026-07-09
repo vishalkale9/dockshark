@@ -17,9 +17,14 @@ import documentRoutes from './routes/document.routes.js';
 import batchRoutes from './routes/batch.routes.js';
 import anchorRoutes from './routes/anchor.routes.js';
 import verifyRoutes from './routes/verify.routes.js';
+import adminRoutes from './routes/admin.route.js';
 
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: [
+        'http://localhost:3000', 
+        'http://127.0.0.1:3000',
+        process.env.FRONTEND_URL || ''
+    ].filter(Boolean),
     credentials: true
 }));
 app.use(express.json());
@@ -30,6 +35,7 @@ app.use('/api/documents', documentRoutes);
 app.use('/api/batch', batchRoutes);
 app.use('/api/anchor', anchorRoutes);
 app.use('/api/verify', verifyRoutes);
+app.use('/api/admin', adminRoutes);
 
 //health check
 app.get('/', (req: Request, res: Response) => {

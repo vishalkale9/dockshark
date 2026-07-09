@@ -1,12 +1,19 @@
 import { Response } from 'express';
 import { AuthRequest } from '../interfaces/Auth.interface.js';
 import { DocumentModel } from '../models/Document.js';
-import { anchorToBlockchain } from '../services/blockchain.service.js';
+import { blockchainService } from '../services/blockchain.service.js';
 
 export const pushToBlockchain = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        // 1. Fetch all documents that are in BATCHED state
-        const batchedDocs = await DocumentModel.find({ status: 'BATCHED' });
+        // 1. Fetch documents that are in BATCHED state
+        const query: any = { status: 'BATCHED' };
+        
+        // Security Audit Fix: Non-admins can only anchor their own batched documents
+        if (req.user?.role !== 'admin') {
+            query.ownerId = req.user?._id;
+        }
+
+        const batchedDocs = await DocumentModel.find(query);
 
         if (batchedDocs.length === 0) {
             res.status(400).json({ message: 'No batched documents found to anchor.' });
@@ -30,7 +37,7 @@ export const pushToBlockchain = async (req: AuthRequest, res: Response): Promise
         // 3. Anchor each unique root to the blockchain
         for (const [merkleRoot, docs] of rootsToDocs.entries()) {
             // Call the blockchain service
-            const txHash = await anchorToBlockchain(merkleRoot);
+            const txHash = await blockchainService.anchorMerkleRoot(merkleRoot);
             
             // 4. Update the documents in MongoDB to ANCHORED with the Polygon TxHash
             const docIds = docs.map(d => d._id);
@@ -80,7 +87,7 @@ export const pushSingleToBlockchain = async (req: AuthRequest, res: Response): P
         }
 
         // 2. Anchor directly to blockchain (treating the single hash as the root)
-        const txHash = await anchorToBlockchain(documentHash);
+        const txHash = await blockchainService.anchorMerkleRoot(documentHash);
 
         // 3. Save as ANCHORED
         const newDocument = await DocumentModel.create({

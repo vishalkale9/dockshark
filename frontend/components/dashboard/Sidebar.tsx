@@ -26,7 +26,7 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-64 bg-white dark:bg-[#0A0A0A] border-r border-gray-200 dark:border-white/10 flex flex-col min-h-[calc(100vh-116px)] sticky top-[116px] overflow-y-auto hidden md:flex transition-colors">
+    <div className="w-64 bg-white dark:bg-[#0A0A0A] border-r border-gray-200 dark:border-white/10 flex flex-col min-h-[calc(100vh-116px)] sticky top-[116px] overflow-y-auto overflow-x-hidden hidden md:flex transition-colors">
       {/* User Profile Summary */}
       <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center">
         <div className="flex items-center gap-3">
@@ -51,6 +51,11 @@ export default function Sidebar() {
           Menu
         </div>
         {navItems.map((item) => {
+          // Hide Admin Tools if user is not admin
+          if (item.name === 'Admin Tools' && user?.role !== 'admin') {
+            return null;
+          }
+
           // Simplified active state check
           const isActive = pathname === item.href || (item.href === '/dashboard' && pathname === '/dashboard');
           const Icon = item.icon;
