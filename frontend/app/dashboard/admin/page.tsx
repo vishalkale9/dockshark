@@ -31,7 +31,7 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/admin/users', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
   const toggleApproval = async (id: string, currentStatus: boolean) => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/admin/users/${id}/approve`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/users/${id}/approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
