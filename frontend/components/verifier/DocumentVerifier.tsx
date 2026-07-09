@@ -52,7 +52,7 @@ export default function DocumentVerifier() {
         ));
         
         // Real network call to backend API for verification
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/verify`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/verify`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
