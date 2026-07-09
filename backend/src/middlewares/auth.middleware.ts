@@ -40,3 +40,11 @@ export const admin = (req: AuthRequest, res: Response, next: NextFunction): void
         res.status(403).json({ message: 'Not authorized as an admin' });
     }
 };
+
+export const approved = (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (req.user && (req.user.isApproved || req.user.role === 'admin')) {
+        next();
+    } else {
+        res.status(403).json({ message: 'Account pending admin approval' });
+    }
+};

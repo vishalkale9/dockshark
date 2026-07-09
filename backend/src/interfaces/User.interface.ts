@@ -6,6 +6,7 @@ export interface IUser extends Document {
     password?: string;
     googleId?: string;
     role: "user" | "admin" | "superadmin";
+    isApproved: boolean;
 
     comparePassword(candidatePassword: string): Promise<boolean>;
 }

@@ -21,8 +21,12 @@ export default function LoginPage() {
          setError('');
          setLoading(true);
          try {
-            await googleLogin(tokenResponse.access_token);
-            window.location.href = '/'; // redirect on success
+            const returnedUser = await googleLogin(tokenResponse.access_token);
+            if (returnedUser.role === 'admin') {
+               window.location.href = '/dashboard/admin';
+            } else {
+               window.location.href = '/dashboard';
+            }
          } catch (err: any) {
             setError(err.message || 'Google authentication failed');
          } finally {
@@ -43,8 +47,12 @@ export default function LoginPage() {
       setError('');
       setLoading(true);
       try {
-         await login({ email, password });
-         window.location.href = '/'; // redirect on success
+         const returnedUser = await login({ email, password });
+         if (returnedUser.role === 'admin') {
+            window.location.href = '/dashboard/admin';
+         } else {
+            window.location.href = '/dashboard';
+         }
       } catch (err: any) {
          setError(err.message);
       } finally {
@@ -53,22 +61,25 @@ export default function LoginPage() {
    };
 
    return (
-      <main className="md:min-h-screen flex items-center justify-center py-4 px-4 md:px-8 bg-gray-50">
-         <div className="w-full max-w-5xl bg-white shadow-[0_4px_24px_-4px_rgba(20,27,52,0.1)] rounded-2xl overflow-hidden border border-gray-100">
+      <main className="md:min-h-screen flex items-center justify-center py-24 px-4 md:px-8 bg-black">
+         {/* Background ambient glow */}
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#5236FF]/10 rounded-full blur-[120px] pointer-events-none" />
+
+         <div className="w-full max-w-5xl bg-[#0A0A0A] shadow-[0_0_40px_rgba(82,54,255,0.05)] rounded-2xl overflow-hidden border border-white/10 relative z-10">
             <div className="grid items-center w-full md:grid-cols-2">
                
                {/* Left Side: Graphic / Branding */}
-               <div className="md:aspect-[8/10] relative bg-[#141B34] overflow-hidden w-full h-full hidden md:block">
+               <div className="md:aspect-[8/10] relative bg-[#0A0A0A] overflow-hidden w-full h-full hidden md:block">
                   <Image
                      src="/auth-image.png"
                      alt="DockShark Professionals"
                      fill
-                     className="object-cover opacity-90 mix-blend-luminosity"
+                     className="object-cover opacity-60 mix-blend-luminosity"
                      priority
                   />
                   {/* Sleek Gradient Overlay for Text Readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#141B34] via-[#141B34]/70 to-[#141B34]/20 mix-blend-multiply" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#141B34] via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/80 to-transparent mix-blend-multiply" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-transparent to-transparent" />
                   
                   <div className="absolute inset-0 flex items-end justify-center p-12 pb-16">
                      <div className="text-center relative z-10 w-full">
@@ -78,8 +89,8 @@ export default function LoginPage() {
                               <span className="font-light text-white">Shark</span>
                            </span>
                         </div>
-                        <h2 className="text-white text-3xl font-bold mb-4">Welcome Back</h2>
-                        <p className="text-blue-100 text-base font-medium leading-relaxed max-w-sm mx-auto">
+                        <h2 className="text-white text-3xl font-medium mb-4">Welcome Back</h2>
+                        <p className="text-gray-400 text-base font-light leading-relaxed max-w-sm mx-auto">
                            Secure, verify, and manage your critical documents with enterprise-grade blockchain infrastructure.
                         </p>
                      </div>
@@ -88,19 +99,19 @@ export default function LoginPage() {
 
                {/* Right Side: Login Form */}
                <div className="py-12 px-6 lg:px-12 w-full max-w-md mx-auto">
-                  <h1 className="text-[#141B34] text-3xl font-bold mb-8">
+                  <h1 className="text-white text-3xl font-medium mb-8">
                      Sign in
                   </h1>
 
                   {error && (
-                     <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
+                     <div className="mb-4 p-3 bg-red-500/10 text-red-400 text-sm rounded-lg border border-red-500/20">
                         {error}
                      </div>
                   )}
 
                   <form className="space-y-6" onSubmit={handleSubmit}>
                      <div>
-                        <label htmlFor="email" className="mb-2 text-[#141B34] font-bold text-sm inline-block">
+                        <label htmlFor="email" className="mb-2 text-gray-300 font-medium text-sm inline-block">
                            Email Address
                         </label>
                         <input 
@@ -111,23 +122,23 @@ export default function LoginPage() {
                            onChange={(e) => setEmail(e.target.value)}
                            placeholder="john@example.com" 
                            required
-                           className="px-4 py-3 text-sm text-[#141B34] rounded-xl bg-gray-50 border border-gray-200 w-full focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#E57A3C]/20 focus:border-[#E57A3C] transition-all" 
+                           className="px-4 py-3 text-sm text-white rounded-xl bg-[#111111] border border-white/10 w-full focus:bg-[#151515] focus:outline-none focus:ring-2 focus:ring-[#5236FF]/50 focus:border-[#5236FF] transition-all placeholder:text-gray-600" 
                         />
                      </div>
                      
                      <div className="relative">
-                        <label htmlFor="password" className="mb-2 text-[#141B34] font-bold text-sm inline-block">
+                        <label htmlFor="password" className="mb-2 text-gray-300 font-medium text-sm inline-block">
                            Password
                         </label>
                         <button
                            type="button"
                            onClick={toggleVisibility}
-                           className="absolute top-[38px] right-3 p-1 flex cursor-pointer focus:outline-none"
+                           className="absolute top-[38px] right-3 p-1 flex cursor-pointer focus:outline-none group"
                         >
-                           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-gray-400" viewBox="0 0 128 128">
+                           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 fill-gray-500 group-hover:fill-gray-300 transition-colors" viewBox="0 0 128 128">
                               <path d="M64 104C22.127 104 1.367 67.496.504 65.943a4 4 0 0 1 0-3.887C1.367 60.504 22.127 24 64 24s62.633 36.504 63.496 38.057a4 4 0 0 1 0 3.887C126.633 67.496 105.873 104 64 104zM8.707 63.994C13.465 71.205 32.146 96 64 96c31.955 0 50.553-24.775 55.293-31.994C114.535 56.795 95.854 32 64 32 32.045 32 13.447 56.775 8.707 63.994zM64 88c-13.234 0-24-10.766-24-24s10.766-24 24-24 24 10.766 24 24-10.766 24-24 24zm0-40c-8.822 0-16 7.178-16 16s7.178 16 16 16 16-7.178 16-16-7.178-16-16-16z" />
                               {!isVisible && (
-                                 <path d="M15 15l98 98" stroke="currentColor" strokeWidth="10" strokeLinecap="round" className="stroke-gray-400" />
+                                 <path d="M15 15l98 98" stroke="currentColor" strokeWidth="10" strokeLinecap="round" className="stroke-gray-500 group-hover:stroke-gray-300 transition-colors" />
                               )}
                            </svg>
                         </button>
@@ -139,18 +150,18 @@ export default function LoginPage() {
                            onChange={(e) => setPassword(e.target.value)}
                            placeholder="••••••••"
                            required
-                           className="px-4 py-3 text-sm text-[#141B34] rounded-xl bg-gray-50 border border-gray-200 w-full focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#E57A3C]/20 focus:border-[#E57A3C] transition-all" 
+                           className="px-4 py-3 text-sm text-white rounded-xl bg-[#111111] border border-white/10 w-full focus:bg-[#151515] focus:outline-none focus:ring-2 focus:ring-[#5236FF]/50 focus:border-[#5236FF] transition-all placeholder:text-gray-600" 
                         />
                      </div>
 
                      <div className="flex items-center justify-between gap-2">
                         <label className="flex items-center cursor-pointer group">
-                           <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#E57A3C] focus:ring-[#E57A3C]" />
-                           <span className="ml-2 text-sm text-gray-600 font-medium">
+                           <input type="checkbox" className="w-4 h-4 rounded border-gray-600 bg-black text-[#5236FF] focus:ring-[#5236FF]" />
+                           <span className="ml-2 text-sm text-gray-400 font-medium">
                               Remember me
                            </span>
                         </label>
-                        <a href="#" className="text-sm font-bold text-[#5236FF] hover:text-[#3d27ca] transition-colors">
+                        <a href="#" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">
                            Forgot password?
                         </a>
                      </div>
@@ -158,22 +169,23 @@ export default function LoginPage() {
                      <button 
                         type="submit" 
                         disabled={loading}
-                        className="w-full py-3 px-4 text-sm rounded-xl font-bold text-white bg-[#5236FF] hover:bg-[#3d27ca] transition-all shadow-[0_4px_14px_0_rgba(82,54,255,0.39)] disabled:opacity-70"
+                        className="w-full py-3 px-4 text-sm rounded-xl font-semibold text-black bg-white hover:bg-gray-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.1)] disabled:opacity-70"
                      >
-                        {loading ? 'Signing in...' : 'Sign In to DockShark'}
+                        {loading ? 'Signing in...' : 'Sign In'}
                      </button>
                   </form>
 
+                  {/* Google Login Temporarily Disabled
                   <div className="my-8 flex items-center gap-4">
-                     <hr className="w-full border-gray-200" />
-                     <p className="text-sm text-gray-400 font-medium uppercase tracking-wider">or</p>
-                     <hr className="w-full border-gray-200" />
+                     <hr className="w-full border-white/10" />
+                     <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">or</p>
+                     <hr className="w-full border-white/10" />
                   </div>
 
                   <button 
                      onClick={() => googleAuth()} 
                      disabled={loading}
-                     className="w-full flex items-center justify-center gap-3 py-3 px-4 text-sm rounded-xl font-bold text-[#141B34] border border-gray-200 bg-white hover:bg-gray-50 transition-all disabled:opacity-70"
+                     className="w-full flex items-center justify-center gap-3 py-3 px-4 text-sm rounded-xl font-medium text-white border border-white/10 bg-[#111111] hover:bg-white/5 transition-all disabled:opacity-70"
                   >
                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 512 512">
                         <path fill="#fbbd00" d="M120 256c0-25.367 6.989-49.13 19.131-69.477v-86.308H52.823C18.568 144.703 0 198.922 0 256s18.568 111.297 52.823 155.785h86.308v-86.308C126.989 305.13 120 281.367 120 256z"/>
@@ -185,10 +197,11 @@ export default function LoginPage() {
                      </svg>
                      Sign in with Google
                   </button>
+                  */}
 
-                  <div className="mt-8 text-gray-600 text-sm text-center font-medium">
+                  <div className="mt-8 text-gray-500 text-sm text-center font-light">
                      Don't have an account? 
-                     <Link href="/signup" className="text-[#E57A3C] hover:text-[#cc6a31] ml-2 font-bold transition-colors">
+                     <Link href="/signup" className="text-white hover:text-gray-300 ml-2 font-medium transition-colors border-b border-transparent hover:border-white">
                         Create one now
                      </Link>
                   </div>

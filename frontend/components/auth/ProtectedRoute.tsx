@@ -29,5 +29,27 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     return null; // Will redirect in useEffect
   }
 
+  if (!user.isApproved && user.role !== 'admin') {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
+        <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2">Account Pending Approval</h2>
+        <p className="text-gray-400 max-w-md mx-auto mb-8">
+          Your account has been created successfully, but it requires administrator approval before you can access the platform features.
+        </p>
+        <button 
+          onClick={() => router.push('/login')}
+          className="px-6 py-2.5 rounded-lg font-semibold text-sm bg-white text-black hover:bg-gray-200 transition-colors"
+        >
+          Return to Login
+        </button>
+      </div>
+    );
+  }
+
   return <>{children}</>;
 }

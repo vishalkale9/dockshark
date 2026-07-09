@@ -1,40 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-
+  const pathname = usePathname();
+  const { user } = useAuth();
+  
   return (
     <div className="fixed w-full z-50 top-0 start-0 flex flex-col">
-      {/* Top Announcement Bar */}
-      <div className="w-full bg-[#E57A3C] text-white py-2 px-4 flex justify-center items-center text-sm font-semibold hover:bg-[#cc6a31] transition-colors cursor-pointer group">
-        <span className="group-hover:underline decoration-white decoration-2 underline-offset-4 transition-all">
-          New: Find out where your credentialing program stands
-        </span>
-        <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-      </div>
 
       {/* Main Navbar */}
-      <nav className="w-full bg-white border-b border-gray-200">
+      <nav className={`w-full border-b transition-colors duration-300 bg-black/50 backdrop-blur-md border-white/10`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             
             {/* Left: Logo */}
             <div className="flex-shrink-0 flex items-center cursor-pointer">
               <Link href="/" className="flex items-center space-x-3 rtl:space-x-reverse group">
-                <div className="relative w-9 h-9 transition-transform group-hover:scale-105">
+                <div className={`relative w-10 h-10 transition-transform group-hover:scale-105`}>
                   <Image 
-                    src="/logo-maxzom.png" 
+                    src="/logo.png" 
                     alt="DockShark Logo" 
                     fill
-                    className="object-contain"
+                    className={`object-contain mix-blend-screen`}
                   />
                 </div>
-                <span className="text-2xl font-extrabold whitespace-nowrap tracking-tight text-[#141B34]">
+                <span className={`text-2xl font-bold whitespace-nowrap tracking-tight text-white`}>
                   DockShark
                 </span>
               </Link>
@@ -42,32 +39,38 @@ export default function Navbar() {
 
             {/* Center: Navigation Links (Desktop) */}
             <div className="hidden md:flex items-center space-x-8">
-              <div className="relative group cursor-pointer flex items-center text-gray-700 hover:text-[#141B34] font-medium text-[15px]">
-                Platform <ChevronDown className="w-4 h-4 ml-1 opacity-70" />
-              </div>
-              <div className="relative group cursor-pointer flex items-center text-gray-700 hover:text-[#141B34] font-medium text-[15px]">
-                Solutions <ChevronDown className="w-4 h-4 ml-1 opacity-70" />
-              </div>
-              <div className="relative group cursor-pointer flex items-center text-gray-700 hover:text-[#141B34] font-medium text-[15px]">
-                Resources <ChevronDown className="w-4 h-4 ml-1 opacity-70" />
-              </div>
-              <Link href="/pricing" className="text-gray-700 hover:text-[#141B34] font-medium text-[15px]">
+              {/* <div className={`relative group cursor-pointer flex items-center font-medium text-[14px] text-gray-300 hover:text-white`}>
+                Platform <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
+              </div> */}
+              <Link href="/solutions" className={`relative group cursor-pointer flex items-center font-medium text-[14px] ${pathname === '/solutions' ? 'text-[#5236FF]' : 'text-gray-300 hover:text-white'}`}>
+                Solutions
+              </Link>
+              <Link href="/verify" className={`font-semibold text-[14px] flex items-center gap-1 ${pathname === '/verify' ? 'text-[#5236FF]' : 'text-gray-300 hover:text-white'}`}>
+                Verify
+              </Link>
+              <Link href="/pricing" className={`font-medium text-[14px] ${pathname === '/pricing' ? 'text-[#5236FF]' : 'text-gray-300 hover:text-white'}`}>
                 Pricing
               </Link>
             </div>
 
             {/* Right: Actions (Desktop) */}
             <div className="hidden md:flex items-center space-x-6">
-              <Link href="/login" className="text-gray-700 hover:text-[#141B34] font-medium text-[15px]">
-                Sign In
-              </Link>
-              <Link href="/support" className="text-gray-700 hover:text-[#141B34] font-medium text-[15px]">
+              {user ? (
+                <Link href="/dashboard" className={`font-medium text-[14px] text-white hover:text-gray-300`}>
+                  Dashboard
+                </Link>
+              ) : (
+                <Link href="/login" className={`font-medium text-[14px] text-gray-300 hover:text-white`}>
+                  Sign In
+                </Link>
+              )}
+              <a href="mailto:codewithpunekar@gmail.com" className={`font-medium text-[14px] text-gray-300 hover:text-white`}>
                 Support
-              </Link>
+              </a>
               <Link href="/demo">
                 <button
                   type="button"
-                  className="text-white bg-[#5236FF] hover:bg-[#432be0] font-semibold rounded-full text-[15px] px-6 py-2.5 transition-all transform hover:scale-105"
+                  className="text-black bg-white hover:bg-gray-200 font-semibold rounded-full text-[14px] px-5 py-2 transition-all transform hover:scale-105"
                 >
                   Get a Demo
                 </button>
@@ -78,7 +81,7 @@ export default function Navbar() {
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="text-gray-600 hover:text-gray-900 focus:outline-none p-2"
+                className={`focus:outline-none p-2 text-white`}
               >
                 {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -88,29 +91,35 @@ export default function Navbar() {
 
         {/* Mobile Menu Dropdown */}
         {isOpen && (
-          <div className="md:hidden bg-white border-t border-gray-100 px-4 pt-2 pb-6 space-y-1 shadow-lg absolute w-full left-0">
-            <Link href="/platform" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#141B34] rounded-md">
+          <div className={`md:hidden absolute w-full left-0 border-t px-4 pt-2 pb-6 space-y-1 shadow-lg bg-[#0A0A0A] border-white/10`}>
+            {/* <Link href="/platform" className={`block px-3 py-2 text-base font-medium rounded-md ${pathname === '/platform' ? 'text-[#5236FF] bg-white/5' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
               Platform
-            </Link>
-            <Link href="/solutions" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#141B34] rounded-md">
+            </Link> */}
+            <Link href="/solutions" className={`block px-3 py-2 text-base font-medium rounded-md ${pathname === '/solutions' ? 'text-[#5236FF] bg-white/5' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
               Solutions
             </Link>
-            <Link href="/resources" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#141B34] rounded-md">
-              Resources
+            <Link href="/verify" className={`block px-3 py-2 text-base font-medium rounded-md ${pathname === '/verify' ? 'text-[#5236FF] bg-white/5' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
+              Verify
             </Link>
-            <Link href="/pricing" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#141B34] rounded-md">
+            <Link href="/pricing" className={`block px-3 py-2 text-base font-medium rounded-md ${pathname === '/pricing' ? 'text-[#5236FF] bg-white/5' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
               Pricing
             </Link>
-            <div className="border-t border-gray-200 my-2"></div>
-            <Link href="/login" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#141B34] rounded-md">
-              Sign In
-            </Link>
-            <Link href="/support" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-[#141B34] rounded-md">
+            <div className={`border-t my-2 border-white/10`}></div>
+            {user ? (
+              <Link href="/dashboard" className={`block px-3 py-2 text-base font-medium rounded-md text-white hover:bg-white/5`}>
+                Dashboard
+              </Link>
+            ) : (
+              <Link href="/login" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
+                Sign In
+              </Link>
+            )}
+            <a href="mailto:codewithpunekar@gmail.com" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
               Support
-            </Link>
+            </a>
             <div className="px-3 mt-4">
               <Link href="/demo">
-                <button className="w-full text-white bg-[#5D43F6] hover:bg-[#4b35c9] font-semibold rounded-full text-base px-6 py-3 transition-colors">
+                <button className={`w-full font-semibold rounded-full text-base px-6 py-3 transition-colors bg-white text-black hover:bg-gray-200`}>
                   Get a Demo
                 </button>
               </Link>

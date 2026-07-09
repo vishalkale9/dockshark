@@ -31,6 +31,10 @@ const UserSchema = new Schema<IUser>(
             type: String,
             enum: ["user", "admin", "superadmin"],
             default: "user",
+        },
+        isApproved: {
+            type: Boolean,
+            default: false,
         }
     },
     {

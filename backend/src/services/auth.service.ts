@@ -35,7 +35,14 @@ export class AuthService {
             name: user.name,
             email: user.email,
             role: user.role,
-            token: generateToken(user._id.toString()),
+            isApproved: user.isApproved,
+            token: generateToken({ 
+                id: user._id.toString(), 
+                name: user.name, 
+                email: user.email, 
+                role: user.role,
+                isApproved: user.isApproved 
+            }),
         };
     }
 
@@ -57,7 +64,14 @@ export class AuthService {
             name: user.name,
             email: user.email,
             role: user.role,
-            token: generateToken(user._id.toString()),
+            isApproved: user.isApproved,
+            token: generateToken({ 
+                id: user._id.toString(), 
+                name: user.name, 
+                email: user.email, 
+                role: user.role,
+                isApproved: user.isApproved 
+            }),
         };
     }
 
@@ -105,7 +119,14 @@ export class AuthService {
             name: user.name,
             email: user.email,
             role: user.role,
-            token: generateToken(user._id.toString()),
+            isApproved: user.isApproved,
+            token: generateToken({ 
+                id: user._id.toString(), 
+                name: user.name, 
+                email: user.email, 
+                role: user.role,
+                isApproved: user.isApproved 
+            }),
         };
     }
 }
