@@ -5,10 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown, ArrowRight } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
   
   return (
     <div className="fixed w-full z-50 top-0 start-0 flex flex-col">
@@ -37,28 +39,34 @@ export default function Navbar() {
 
             {/* Center: Navigation Links (Desktop) */}
             <div className="hidden md:flex items-center space-x-8">
-              <div className={`relative group cursor-pointer flex items-center font-medium text-[14px] text-gray-300 hover:text-white`}>
+              {/* <div className={`relative group cursor-pointer flex items-center font-medium text-[14px] text-gray-300 hover:text-white`}>
                 Platform <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
-              </div>
-              <Link href="/solutions" className={`relative group cursor-pointer flex items-center font-medium text-[14px] text-gray-300 hover:text-white`}>
+              </div> */}
+              <Link href="/solutions" className={`relative group cursor-pointer flex items-center font-medium text-[14px] ${pathname === '/solutions' ? 'text-[#5236FF]' : 'text-gray-300 hover:text-white'}`}>
                 Solutions
               </Link>
-              <Link href="/verify" className={`font-semibold text-[14px] flex items-center gap-1 text-[#5236FF] hover:text-[#7861FF]`}>
+              <Link href="/verify" className={`font-semibold text-[14px] flex items-center gap-1 ${pathname === '/verify' ? 'text-[#5236FF]' : 'text-gray-300 hover:text-white'}`}>
                 Verify
               </Link>
-              <Link href="/pricing" className={`font-medium text-[14px] text-gray-300 hover:text-white`}>
+              <Link href="/pricing" className={`font-medium text-[14px] ${pathname === '/pricing' ? 'text-[#5236FF]' : 'text-gray-300 hover:text-white'}`}>
                 Pricing
               </Link>
             </div>
 
             {/* Right: Actions (Desktop) */}
             <div className="hidden md:flex items-center space-x-6">
-              <Link href="/login" className={`font-medium text-[14px] text-gray-300 hover:text-white`}>
-                Sign In
-              </Link>
-              <Link href="/support" className={`font-medium text-[14px] text-gray-300 hover:text-white`}>
+              {user ? (
+                <Link href="/dashboard" className={`font-medium text-[14px] text-white hover:text-gray-300`}>
+                  Dashboard
+                </Link>
+              ) : (
+                <Link href="/login" className={`font-medium text-[14px] text-gray-300 hover:text-white`}>
+                  Sign In
+                </Link>
+              )}
+              <a href="mailto:codewithpunekar@gmail.com" className={`font-medium text-[14px] text-gray-300 hover:text-white`}>
                 Support
-              </Link>
+              </a>
               <Link href="/demo">
                 <button
                   type="button"
@@ -84,25 +92,31 @@ export default function Navbar() {
         {/* Mobile Menu Dropdown */}
         {isOpen && (
           <div className={`md:hidden absolute w-full left-0 border-t px-4 pt-2 pb-6 space-y-1 shadow-lg bg-[#0A0A0A] border-white/10`}>
-            <Link href="/platform" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
+            {/* <Link href="/platform" className={`block px-3 py-2 text-base font-medium rounded-md ${pathname === '/platform' ? 'text-[#5236FF] bg-white/5' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
               Platform
-            </Link>
-            <Link href="/solutions" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
+            </Link> */}
+            <Link href="/solutions" className={`block px-3 py-2 text-base font-medium rounded-md ${pathname === '/solutions' ? 'text-[#5236FF] bg-white/5' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
               Solutions
             </Link>
-            <Link href="/verify" className={`block px-3 py-2 text-base font-medium rounded-md text-[#5236FF] hover:bg-white/5`}>
+            <Link href="/verify" className={`block px-3 py-2 text-base font-medium rounded-md ${pathname === '/verify' ? 'text-[#5236FF] bg-white/5' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
               Verify
             </Link>
-            <Link href="/pricing" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
+            <Link href="/pricing" className={`block px-3 py-2 text-base font-medium rounded-md ${pathname === '/pricing' ? 'text-[#5236FF] bg-white/5' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}>
               Pricing
             </Link>
             <div className={`border-t my-2 border-white/10`}></div>
-            <Link href="/login" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
-              Sign In
-            </Link>
-            <Link href="/support" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
+            {user ? (
+              <Link href="/dashboard" className={`block px-3 py-2 text-base font-medium rounded-md text-white hover:bg-white/5`}>
+                Dashboard
+              </Link>
+            ) : (
+              <Link href="/login" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
+                Sign In
+              </Link>
+            )}
+            <a href="mailto:codewithpunekar@gmail.com" className={`block px-3 py-2 text-base font-medium rounded-md text-gray-300 hover:bg-white/5 hover:text-white`}>
               Support
-            </Link>
+            </a>
             <div className="px-3 mt-4">
               <Link href="/demo">
                 <button className={`w-full font-semibold rounded-full text-base px-6 py-3 transition-colors bg-white text-black hover:bg-gray-200`}>

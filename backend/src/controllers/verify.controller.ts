@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { DocumentModel } from '../models/Document.js';
+import { blockchainService } from '../services/blockchain.service.js';
 
 export const verifyDocument = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -23,7 +24,7 @@ export const verifyDocument = async (req: Request, res: Response): Promise<void>
         }
 
         // 3. If it exists but hasn't been anchored yet
-        if (document.status !== 'ANCHORED' || !document.polygonTxHash) {
+        if (document.status !== 'ANCHORED' || !document.merkleRoot) {
             res.status(400).json({ 
                 verified: false,
                 message: `Document found, but it is currently in '${document.status}' state. It has not been permanently anchored to the blockchain yet.` 
@@ -31,17 +32,29 @@ export const verifyDocument = async (req: Request, res: Response): Promise<void>
             return;
         }
 
-        // 4. Success! The document is perfectly valid and anchored.
+        // 4. Zero-Trust Check: Query the Blockchain!
+        const isAnchoredOnChain = await blockchainService.verifyMerkleRoot(document.merkleRoot);
+        
+        if (!isAnchoredOnChain) {
+            res.status(404).json({
+                verified: false,
+                message: 'Blockchain Verification Failed. The cryptographic proof does not exist on the Sepolia network.'
+            });
+            return;
+        }
+
+        // 5. Success! The document is perfectly valid and anchored.
         res.status(200).json({
             verified: true,
-            message: 'Cryptographic Proof Verified',
+            message: 'Cryptographic Proof Verified on Sepolia Blockchain',
             data: {
                 fileName: document.fileName,
                 documentHash: document.documentHash,
                 merkleRoot: document.merkleRoot,
                 polygonTxHash: document.polygonTxHash,
                 timestamp: document.updatedAt, // Using updatedAt as the anchor timestamp
-                owner: (document.ownerId as any)?.name || 'Unknown'
+                owner: (document.ownerId as any)?.name || 'Unknown',
+                network: 'Ethereum Sepolia'
             }
         });
 

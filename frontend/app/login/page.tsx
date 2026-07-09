@@ -21,8 +21,12 @@ export default function LoginPage() {
          setError('');
          setLoading(true);
          try {
-            await googleLogin(tokenResponse.access_token);
-            window.location.href = '/'; // redirect on success
+            const returnedUser = await googleLogin(tokenResponse.access_token);
+            if (returnedUser.role === 'admin') {
+               window.location.href = '/dashboard/admin';
+            } else {
+               window.location.href = '/dashboard';
+            }
          } catch (err: any) {
             setError(err.message || 'Google authentication failed');
          } finally {
@@ -43,8 +47,12 @@ export default function LoginPage() {
       setError('');
       setLoading(true);
       try {
-         await login({ email, password });
-         window.location.href = '/'; // redirect on success
+         const returnedUser = await login({ email, password });
+         if (returnedUser.role === 'admin') {
+            window.location.href = '/dashboard/admin';
+         } else {
+            window.location.href = '/dashboard';
+         }
       } catch (err: any) {
          setError(err.message);
       } finally {
@@ -167,6 +175,7 @@ export default function LoginPage() {
                      </button>
                   </form>
 
+                  {/* Google Login Temporarily Disabled
                   <div className="my-8 flex items-center gap-4">
                      <hr className="w-full border-white/10" />
                      <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">or</p>
@@ -188,6 +197,7 @@ export default function LoginPage() {
                      </svg>
                      Sign in with Google
                   </button>
+                  */}
 
                   <div className="mt-8 text-gray-500 text-sm text-center font-light">
                      Don't have an account? 

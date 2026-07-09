@@ -2,58 +2,88 @@
 
 import React, { useState, useCallback } from 'react';
 import { keccak256 } from 'js-sha3';
-import { CheckCircle2, XCircle, Search, FileText } from 'lucide-react';
+import { CheckCircle2, XCircle, Search, FileText, Loader2 } from 'lucide-react';
 
-type VerificationStatus = 'idle' | 'hashing' | 'verifying' | 'authentic' | 'unverified';
+type FileStatus = 'hashing' | 'verifying' | 'authentic' | 'unverified';
+
+type FileVerificationResult = {
+  id: string;
+  fileName: string;
+  status: FileStatus;
+  hash: string | null;
+  details?: {
+    timestamp: string;
+    txHash: string;
+    issuer: string;
+    network: string;
+  };
+};
 
 export default function DocumentVerifier() {
   const [isDragging, setIsDragging] = useState(false);
-  const [status, setStatus] = useState<VerificationStatus>('idle');
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [fileHash, setFileHash] = useState<string | null>(null);
-  
-  // Mock verification result - randomly pass/fail or just pass for demo
-  const [verificationDetails, setVerificationDetails] = useState<any>(null);
+  const [files, setFiles] = useState<FileVerificationResult[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const processFile = async (file: File) => {
-    setFileName(file.name);
-    setStatus('hashing');
-    setFileHash(null);
-    setVerificationDetails(null);
+  const processFiles = async (uploadedFiles: File[]) => {
+    setIsProcessing(true);
+    
+    // Initialize results
+    const newFiles: FileVerificationResult[] = uploadedFiles.map(f => ({
+      id: Math.random().toString(36).substring(7),
+      fileName: f.name,
+      status: 'hashing',
+      hash: null
+    }));
+    
+    setFiles(prev => [...newFiles, ...prev]);
 
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const hash = `0x${keccak256(arrayBuffer)}`;
+    // Process files sequentially or in parallel
+    for (let i = 0; i < uploadedFiles.length; i++) {
+      const file = uploadedFiles[i];
+      const resultId = newFiles[i].id;
       
-      // Simulate zero-knowledge hash computation delay
-      setTimeout(() => {
-        setFileHash(hash);
-        setStatus('verifying');
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const hash = `0x${keccak256(arrayBuffer)}`;
         
-        // Simulate network call to blockchain indexer
-        setTimeout(() => {
-          // For demo purposes, we randomly simulate success or failure 
-          // (In production, this queries the backend / Polygon contract)
-          const isAuthentic = Math.random() > 0.3; // 70% chance of success
-          
-          if (isAuthentic) {
-            setStatus('authentic');
-            setVerificationDetails({
-              timestamp: new Date().toISOString(),
-              txHash: '0x3f5c9e2d...a8b41',
-              issuer: 'DockSharks Secure Corp.',
-              network: 'Polygon Mainnet'
-            });
-          } else {
-            setStatus('unverified');
-          }
-        }, 1500);
-      }, 800);
-      
-    } catch (error) {
-      console.error("Hashing failed", error);
-      setStatus('idle');
+        // Update to verifying
+        setFiles(prev => prev.map(f => 
+          f.id === resultId ? { ...f, hash, status: 'verifying' } : f
+        ));
+        
+        // Real network call to backend API for verification
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/verify`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ documentHash: hash })
+        });
+        
+        const data = await response.json();
+        
+        setFiles(prev => prev.map(f => 
+          f.id === resultId ? {
+            ...f,
+            status: data.verified ? 'authentic' : 'unverified',
+            details: data.verified ? {
+              timestamp: data.data.timestamp,
+              txHash: data.data.polygonTxHash,
+              issuer: data.data.owner,
+              network: data.data.network || 'Ethereum Sepolia'
+            } : undefined
+          } : f
+        ));
+        
+      } catch (error) {
+        console.error("Hashing failed for", file.name, error);
+        setFiles(prev => prev.map(f => 
+          f.id === resultId ? { ...f, status: 'unverified' } : f
+        ));
+      }
     }
+    
+    setIsProcessing(false);
   };
 
   const onDragOver = useCallback((e: React.DragEvent) => {
@@ -71,14 +101,30 @@ export default function DocumentVerifier() {
     setIsDragging(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processFile(e.dataTransfer.files[0]);
+      processFiles(Array.from(e.dataTransfer.files));
     }
   }, []);
 
   const onFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      processFile(e.target.files[0]);
+      processFiles(Array.from(e.target.files));
     }
+  };
+
+  const getStatusIcon = (status: FileStatus) => {
+    switch (status) {
+      case 'hashing':
+      case 'verifying':
+        return <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />;
+      case 'authentic':
+        return <CheckCircle2 className="w-5 h-5 text-green-400" />;
+      case 'unverified':
+        return <XCircle className="w-5 h-5 text-red-500" />;
+    }
+  };
+
+  const resetVerifier = () => {
+    setFiles([]);
   };
 
   return (
@@ -87,11 +133,11 @@ export default function DocumentVerifier() {
       <div className="text-center mb-8">
         <h2 className="text-xl font-bold text-white mb-2">Secure Document Verification</h2>
         <p className="text-gray-400 text-sm max-w-lg mx-auto">
-          Ensure the integrity of your documents. Drop a file to instantly verify its cryptographic proof on the Polygon blockchain. Your files never leave your device.
+          Ensure the integrity of your documents. Drop multiple files to instantly verify their cryptographic proofs on the Ethereum blockchain.
         </p>
       </div>
 
-      {status === 'idle' && (
+      {files.length === 0 ? (
         <div 
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
@@ -104,6 +150,7 @@ export default function DocumentVerifier() {
         >
           <input 
             type="file" 
+            multiple
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
             onChange={onFileInput}
           />
@@ -115,115 +162,121 @@ export default function DocumentVerifier() {
             
             <div>
               <h3 className="text-xl font-bold text-white mb-2">
-                {isDragging ? 'Drop to verify' : 'Select a document to verify'}
+                {isDragging ? 'Drop to verify' : 'Select documents to verify'}
               </h3>
               <p className="text-gray-500 font-medium text-sm">
-                PDF, DOCX, JPG, PNG up to 50MB
+                Drop one or multiple files (PDF, DOCX, JPG, PNG)
               </p>
             </div>
           </div>
         </div>
-      )}
-
-      {(status === 'hashing' || status === 'verifying') && (
-        <div className="p-12 bg-[#111111] border border-white/10 rounded-2xl text-center relative overflow-hidden">
-          {/* Scanning Animation line */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)] animate-[scan_2s_ease-in-out_infinite]"></div>
-          
-          <div className="flex flex-col items-center justify-center gap-6 relative z-10">
-            <div className="relative">
-              <FileText className="w-16 h-16 text-gray-700" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Search className="w-8 h-8 text-white animate-pulse" />
-              </div>
-            </div>
-            
+      ) : (
+        <div className="space-y-6">
+          {/* Header Stats */}
+          <div className="flex justify-between items-center pb-4 border-b border-white/10">
             <div>
-              <p className="text-white font-bold text-xl mb-2">
-                {status === 'hashing' ? 'Computing Keccak-256 Hash...' : 'Querying Polygon Blockchain...'}
-              </p>
-              <p className="text-gray-400 text-sm font-mono bg-[#0A0A0A] border border-white/10 px-3 py-1 rounded-lg truncate max-w-xs mx-auto">
-                {status === 'verifying' ? fileHash : 'Processing securely locally...'}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {status === 'authentic' && (
-        <div className="animate-in fade-in zoom-in-95 duration-500">
-          <div className="bg-[#111111] border border-white/10 rounded-2xl overflow-hidden">
-            <div className="p-8 text-center border-b border-white/10">
-              <div className="inline-flex items-center justify-center p-3 bg-white/5 rounded-full mb-4 border border-white/10">
-                <CheckCircle2 className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Document is Authentic!</h3>
-              <p className="text-gray-300 text-sm font-medium">
-                This exact file matches a cryptographic root anchored to the blockchain.
+              <h3 className="text-lg font-medium text-white">Verification Results</h3>
+              <p className="text-sm text-gray-400">
+                {isProcessing ? 'Processing files...' : `Completed checking ${files.length} file(s)`}
               </p>
             </div>
             
-            <div className="p-6 bg-[#0A0A0A] space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">File Name</p>
-                  <p className="text-gray-200 font-medium text-sm truncate">{fileName}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Network</p>
-                  <p className="text-gray-200 font-medium text-sm">{verificationDetails?.network}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Verified Issuer</p>
-                  <p className="text-gray-200 font-medium text-sm flex items-center gap-2">
-                    <span className="w-2 h-2 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)]"></span>
-                    {verificationDetails?.issuer}
-                  </p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Document Hash (Keccak-256)</p>
-                  <p className="text-xs font-mono text-gray-400 break-all bg-[#111111] p-2 rounded border border-white/10">
-                    {fileHash}
-                  </p>
-                </div>
-              </div>
-            </div>
+            {!isProcessing && (
+              <button 
+                onClick={resetVerifier}
+                className="px-4 py-2 text-sm font-medium rounded-lg text-black bg-white hover:bg-gray-200 transition-colors"
+              >
+                Verify More
+              </button>
+            )}
           </div>
-          
-          <button 
-            onClick={() => setStatus('idle')}
-            className="w-full mt-6 py-4 px-4 text-sm rounded-xl font-bold text-black bg-white hover:bg-gray-200 transition-colors"
-          >
-            Verify Another Document
-          </button>
-        </div>
-      )}
 
-      {status === 'unverified' && (
-        <div className="animate-in fade-in zoom-in-95 duration-500">
-          <div className="bg-[#111111] border border-red-500/50 rounded-2xl overflow-hidden p-8 text-center shadow-[0_0_30px_rgba(239,68,68,0.1)]">
-            <div className="inline-flex items-center justify-center p-3 bg-red-500/10 rounded-full mb-4 border border-red-500/20">
-              <XCircle className="w-12 h-12 text-red-500" />
-            </div>
-            <h3 className="text-2xl font-bold text-red-500 mb-2">Unverified Document</h3>
-            <p className="text-gray-300 text-sm font-medium mb-6">
-              This document's hash could not be found on the blockchain. It may have been modified, corrupted, or not officially anchored.
-            </p>
-            
-            <div className="text-left bg-[#0A0A0A] p-4 rounded-xl border border-white/10">
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Computed Hash</p>
-              <p className="text-xs font-mono text-gray-400 break-all">
-                {fileHash}
-              </p>
-            </div>
+          {/* Results List */}
+          <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+            {files.map((file) => (
+              <div 
+                key={file.id} 
+                className={`p-4 rounded-xl border transition-all ${
+                  file.status === 'authentic' ? 'border-green-500/30 bg-green-500/5' :
+                  file.status === 'unverified' ? 'border-red-500/30 bg-red-500/5' :
+                  'border-white/10 bg-[#111111]'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="mt-1">
+                      {getStatusIcon(file.status)}
+                    </div>
+                    <div>
+                      <p className={`font-medium ${
+                        file.status === 'authentic' ? 'text-green-400' :
+                        file.status === 'unverified' ? 'text-red-500' :
+                        'text-white'
+                      }`}>
+                        {file.fileName}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-gray-500 font-mono">
+                          {file.status === 'hashing' ? 'Computing Hash...' : 
+                           file.status === 'verifying' ? 'Querying Blockchain...' :
+                           file.hash ? `${file.hash.substring(0, 14)}...${file.hash.substring(file.hash.length - 10)}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Status Badge */}
+                  {file.status === 'authentic' && (
+                    <span className="px-2 py-1 bg-green-500/10 text-green-400 text-xs font-bold rounded">
+                      AUTHENTIC
+                    </span>
+                  )}
+                  {file.status === 'unverified' && (
+                    <span className="px-2 py-1 bg-red-500/10 text-red-500 text-xs font-bold rounded">
+                      UNVERIFIED
+                    </span>
+                  )}
+                </div>
+                
+                {/* Expandable Details for Authentic Files */}
+                {file.status === 'authentic' && file.details && (
+                  <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Timestamp</p>
+                      <p className="text-gray-300 text-xs">
+                        {new Date(file.details.timestamp).toLocaleString(undefined, {
+                          year: 'numeric', month: 'short', day: 'numeric',
+                          hour: '2-digit', minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Network</p>
+                      <p className="text-gray-300 text-xs">{file.details.network}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Issuer</p>
+                      <p className="text-gray-300 text-xs">{file.details.issuer}</p>
+                    </div>
+                    <div className="col-span-1 sm:col-span-3">
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Etherscan Proof</p>
+                      <a 
+                        href={`https://sepolia.etherscan.io/tx/${file.details.txHash}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-xs text-[#00E5FF] hover:underline flex items-center gap-1"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        View Transaction
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-          
-          <button 
-            onClick={() => setStatus('idle')}
-            className="w-full mt-6 py-4 px-4 text-sm rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md shadow-red-600/20"
-          >
-            Try Another Document
-          </button>
         </div>
       )}
     </div>

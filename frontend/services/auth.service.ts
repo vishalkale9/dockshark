@@ -4,6 +4,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role: string;
+  isApproved: boolean;
 }
 
 export interface AuthResponse {
@@ -20,7 +22,16 @@ export const authService = {
     if (response.token) {
       localStorage.setItem('token', response.token);
     }
-    return response;
+    return {
+      user: {
+        id: response._id,
+        name: response.name,
+        email: response.email,
+        role: response.role,
+        isApproved: response.isApproved
+      },
+      token: response.token
+    };
   },
 
   async signup(data: any): Promise<AuthResponse> {
@@ -28,10 +39,16 @@ export const authService = {
       method: 'POST',
       body: JSON.stringify(data),
     });
-    if (response.token) {
-      localStorage.setItem('token', response.token);
-    }
-    return response;
+    return {
+      user: {
+        id: response._id,
+        name: response.name,
+        email: response.email,
+        role: response.role,
+        isApproved: response.isApproved
+      },
+      token: response.token
+    };
   },
 
   async googleLogin(token: string): Promise<AuthResponse> {
@@ -42,7 +59,16 @@ export const authService = {
     if (response.token) {
       localStorage.setItem('token', response.token);
     }
-    return response;
+    return {
+      user: {
+        id: response._id,
+        name: response.name,
+        email: response.email,
+        role: response.role,
+        isApproved: response.isApproved
+      },
+      token: response.token
+    };
   },
 
   logout() {

@@ -11,28 +11,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { useTheme } from 'next-themes';
-
-// Mock data to simulate the last 7 days of activity
-const generateMockData = () => {
-  const data = [];
-  const today = new Date();
-  
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(today.getDate() - i);
-    
-    // Generate some believable random data
-    const uploads = Math.floor(Math.random() * 20) + 5;
-    const secured = Math.floor(uploads * (Math.random() * 0.4 + 0.5)); // 50-90% secured
-    
-    data.push({
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      uploads,
-      secured,
-    });
-  }
-  return data;
-};
+import { fetchWithAuth } from '@/lib/api';
 
 export default function ActivityChart() {
   const { theme } = useTheme();
@@ -40,8 +19,18 @@ export default function ActivityChart() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setData(generateMockData());
-    setMounted(true);
+    const fetchActivity = async () => {
+      try {
+        const activityData = await fetchWithAuth('/documents/activity');
+        setData(activityData);
+      } catch (error) {
+        console.error('Failed to fetch activity overview', error);
+      } finally {
+        setMounted(true);
+      }
+    };
+    
+    fetchActivity();
   }, []);
 
   if (!mounted) {

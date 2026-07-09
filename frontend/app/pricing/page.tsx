@@ -48,7 +48,7 @@ export default function PricingPage() {
             {!submitted ? (
               <form onSubmit={handleSubmit} className="relative z-10 text-left">
                 <h3 className="text-xl font-medium text-white mb-2">Join the Waitlist</h3>
-                <p className="text-sm text-gray-400 mb-6 font-light">Enter your corporate email address to request early access.</p>
+                <p className="text-sm text-gray-400 mb-6 font-light">Enter your corporate email address to request early access, or email us directly at <a href="mailto:codewithpunekar@gmail.com" className="text-[#5236FF] hover:underline">codewithpunekar@gmail.com</a>.</p>
                 
                 <div className="space-y-4">
                   <div>

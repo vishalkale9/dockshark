@@ -9,7 +9,7 @@ export default function DocumentLedger() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const itemsPerPage = 5;
+  const itemsPerPage = parseInt(process.env.NEXT_PUBLIC_PAGINATION_LIMIT || '5', 10);
 
   const fetchDocuments = async (page: number) => {
     setLoading(true);
@@ -88,7 +88,7 @@ export default function DocumentLedger() {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-white/10">
                 {documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
+                  <tr key={doc._id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4 font-medium text-[#141B34] dark:text-gray-200 flex items-center gap-3">
                       <div className="flex flex-col">
                         <span className="font-semibold text-[#141B34] dark:text-white">{doc.fileName}</span>
@@ -119,13 +119,13 @@ export default function DocumentLedger() {
                       })}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {doc.status === 'ANCHORED' && doc.proofHash ? (
+                      {doc.status === 'ANCHORED' && doc.polygonTxHash ? (
                         <div className="flex items-center justify-end gap-3">
-                          <a href={`https://polygonscan.com/tx/${doc.polygonTxHash}`} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#141B34] dark:text-white hover:text-black transition-colors flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-2.5 py-1.5 rounded-lg">
+                          <a href={`https://sepolia.etherscan.io/tx/${doc.polygonTxHash}`} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-[#141B34] dark:text-white hover:text-black transition-colors flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-2.5 py-1.5 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
-                            Polygon
+                            Etherscan
                           </a>
                           <button 
                             onClick={() => copyProofLink(doc.documentHash)}
